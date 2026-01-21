@@ -1,8 +1,3 @@
-/* ================================
-   FIREBASE AUTHENTICATION SCRIPT
-   ================================ */
-
-/* ---------- 1. IMPORTS ---------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import {
   getAuth,
@@ -11,83 +6,74 @@ import {
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail,
-  updateProfile,
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-/* ---------- 2. FIREBASE CONFIG ---------- */
 const firebaseConfig = {
+  apiKey: "AIzaSyDW4SEMaGHwoF8hUMbvedoYDCuHvZnMK5M",
+  authDomain: "itc-project-312be.firebaseapp.com",
+  projectId: "itc-project-312be",
+  storageBucket: "itc-project-312be.firebasestorage.app",
+  messagingSenderId: "607930049938",
+  appId: "1:607930049938:web:c227b52d36eda62ca44d4b",
 };
 
-/* ---------- 3. INITIALIZE FIREBASE ---------- */
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-
-/* ---------- 4. HELPER FUNCTIONS ---------- */
-function showAlert(message) {
-  alert(message);
-}
 
 function getPageTitle() {
   return document.title;
 }
 
-/* ---------- 5. AUTH STATE LISTENER ---------- */
 onAuthStateChanged(auth, (user) => {
   const page = getPageTitle();
 
   if (user) {
     console.log("User logged in:", user.email);
 
-    // Prevent logged-in users from accessing auth pages
     if (page === "Login" || page === "Signup" || page === "Forgot Password") {
       window.location.href = "welcome.html";
     }
 
-    // Show user info on Welcome page
     if (page === "Welcome") {
       const heading = document.querySelector(".form-heading");
-      heading.textContent = `Welcome, ${user.displayName || user.email}`;
+      heading.textContent = `Welcome, ${user.email}`;
     }
   } else {
     console.log("User logged out");
 
-    // Protect Welcome page
     if (page === "Welcome") {
       window.location.href = "index.html";
     }
   }
 });
 
-/* ---------- 6. SIGNUP ---------- */
 if (getPageTitle() === "Signup") {
   const signupForm = document.querySelector(".form");
 
   signupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const username = document.getElementById("username").value.trim();
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
+    const submitBtn = signupForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+
+    submitBtn.textContent = "Loading...";
+    submitBtn.disabled = true;
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
-      await updateProfile(userCredential.user, {
-        displayName: username,
-      });
-
-      showAlert("Account created successfully!");
+      await createUserWithEmailAndPassword(auth, email, password);
+      alert("Account created successfully!");
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
     } catch (error) {
-      showAlert(error.message);
+      alert(error.message);
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
     }
   });
 }
 
-/* ---------- 7. LOGIN ---------- */
 if (getPageTitle() === "Login") {
   const loginForm = document.querySelector(".form");
 
@@ -96,16 +82,24 @@ if (getPageTitle() === "Login") {
 
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
+    const submitBtn = loginForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+
+    submitBtn.textContent = "Loading...";
+    submitBtn.disabled = true;
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
     } catch (error) {
-      showAlert(error.message);
+      alert(error.message);
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
     }
   });
 }
 
-/* ---------- 8. FORGOT PASSWORD ---------- */
 if (getPageTitle() === "Forgot Password") {
   const forgotForm = document.querySelector(".form");
 
@@ -113,29 +107,46 @@ if (getPageTitle() === "Forgot Password") {
     event.preventDefault();
 
     const email = document.getElementById("email").value.trim();
+    const submitBtn = forgotForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+
+    // Set loading state
+    submitBtn.textContent = "Loading...";
+    submitBtn.disabled = true;
 
     try {
       await sendPasswordResetEmail(auth, email);
-      showAlert("Password reset email sent!");
-
+      alert("Password reset email sent!");
       setTimeout(() => {
         window.location.href = "index.html";
       }, 2000);
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
     } catch (error) {
-      showAlert(error.message);
+      alert(error.message);
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
     }
   });
 }
 
-/* ---------- 9. LOGOUT ---------- */
 if (getPageTitle() === "Welcome") {
   const logoutButton = document.querySelector(".signout-btn");
 
   logoutButton.addEventListener("click", async () => {
+    const originalText = logoutButton.textContent;
+
+    logoutButton.textContent = "Loading...";
+    logoutButton.disabled = true;
+
     try {
       await signOut(auth);
+      logoutButton.textContent = originalText;
+      logoutButton.disabled = false;
     } catch (error) {
-      showAlert("Failed to sign out");
+      alert("Failed to sign out");
+      logoutButton.textContent = originalText;
+      logoutButton.disabled = false;
     }
   });
 }
